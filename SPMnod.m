@@ -3,7 +3,7 @@ global S
 
 %SPMNOD Build 'names', 'onsets', 'durations' for SPM
 
-EchoStart(mfilename)
+
 
 try
     %% Preparation
@@ -24,9 +24,6 @@ try
                 'Deviation'
                 'No_vision'
                 };
-            
-        case 'EyelinkCalibration'
-            names = {};
             
     end
     
@@ -92,44 +89,41 @@ try
     
     %% Add Clicks to SPM model input
     
-    if ~strcmp(S.Task,'EyelinkCalibration')
+    % Keep response button timings in the SPM model.
+    
+    N = length(names);
+    
+    fingers = S.Parameters.Fingers.Names;
+    
+    for f = 1:length(fingers)
+        click_spot.(fingers{f}) = regexp(S.TaskData.KL.KbEvents(:,1),fingers{f});
+        click_spot.(fingers{f}) = ~cellfun(@isempty,click_spot.(fingers{f}));
+        click_spot.(fingers{f}) = find(click_spot.(fingers{f}));
+    end
+    
+    count = 0 ;
+    for f = 1:length(fingers)
         
-        N = length(names);
+        count = count + 1 ;
         
-        fingers = S.Parameters.Fingers.Names;
+        names{N+count} = fingers{f};
         
-        for f = 1:length(fingers)
-            click_spot.(fingers{f}) = regexp(S.TaskData.KL.KbEvents(:,1),fingers{f});
-            click_spot.(fingers{f}) = ~cellfun(@isempty,click_spot.(fingers{f}));
-            click_spot.(fingers{f}) = find(click_spot.(fingers{f}));
-        end
-        
-        count = 0 ;
-        for f = 1:length(fingers)
-            
-            count = count + 1 ;
-            
-            names{N+count} = fingers{f};
-            
-            if ~isempty(S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2})
-                click_idx = cell2mat(S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}(:,2)) == 1;
-                click_idx = find(click_idx);
-                % the last clickk can be be unfinished : button down + end of stim = no button up
-                if isempty(S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}{click_idx(end),3})
-                    S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}{click_idx(end),3} =  S.TaskData.ER.Data{end,2} - S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}{click_idx(end),1};
-                end
-                onsets{N+count}    = cell2mat(S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}(click_idx,1));
-                durations{N+count} = cell2mat(S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}(click_idx,3));
-            else
-                onsets{N+count}    = [];
-                durations{N+count} = [];
+        if ~isempty(S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2})
+            click_idx = cell2mat(S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}(:,2)) == 1;
+            click_idx = find(click_idx);
+            % the last clickk can be be unfinished : button down + end of stim = no button up
+            if isempty(S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}{click_idx(end),3})
+                S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}{click_idx(end),3} =  S.TaskData.ER.Data{end,2} - S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}{click_idx(end),1};
             end
-            
+            onsets{N+count}    = cell2mat(S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}(click_idx,1));
+            durations{N+count} = cell2mat(S.TaskData.KL.KbEvents{click_spot.(fingers{f}),2}(click_idx,3));
+        else
+            onsets{N+count}    = [];
+            durations{N+count} = [];
         end
         
     end
-    
-    
+
 catch err
     
     sca
@@ -137,6 +131,6 @@ catch err
     
 end
 
-EchoStop(mfilename)
+
 
 end % function

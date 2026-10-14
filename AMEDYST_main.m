@@ -36,10 +36,6 @@ switch get(hObject,'Tag')
         isTask2 = strcmp(get(hObject,'Tag'),'pushbutton_MEG_Task2');
         S.MEG.Phase = 1 + double(isTask2);
         S.MEG.Counterbalance = get(handles.popup_Counterbalance,'Value');
-        S.MEG.DisplayWidthMm = str2double(get(handles.edit_DisplayWidthMm,'String'));
-        if ~isfinite(S.MEG.DisplayWidthMm) || S.MEG.DisplayWidthMm <= 0
-            error('MEG:DisplayWidth','Enter measured physical display width in mm.');
-        end
         S.MEG.FirstBreakSeconds = 300;
         if get(handles.popup_Scoring,'Value') == 1
             Task = 'ADAPT_Reward';
@@ -49,9 +45,6 @@ switch get(hObject,'Tag')
 
     case 'pushbutton_SEQ'
         Task = 'SEQ';
-
-    case 'pushbutton_EyelinkCalibration'
-        Task = 'EyelinkCalibration';
 
     otherwise
         error('AMEDYST:TaskSelection','Error in Task selection')
@@ -72,20 +65,6 @@ switch get(get(handles.uipanel_Environement,'SelectedObject'),'Tag')
 end
 
 S.Environement = Environement;
-
-
-%% GUI : Save mode selection
-
-switch get(get(handles.uipanel_SaveMode,'SelectedObject'),'Tag')
-    case 'radiobutton_SaveData'
-        SaveMode = 'SaveData';
-    case 'radiobutton_NoSave'
-        SaveMode = 'NoSave';
-    otherwise
-        warning('AMEDYST:SaveSelection','Error in SaveMode selection')
-end
-
-S.SaveMode = SaveMode;
 
 
 %% GUI : Mode selection
@@ -142,12 +121,11 @@ end
 % Prepare path
 DataPath = [fullfile(fileparts(mfilename('fullpath')),'data',SubjectID) filesep];
 
-if strcmp(SaveMode,'SaveData') && strcmp(OperationMode,'Acquisition')
-
-    if ~exist(DataPath, 'dir')
-        mkdir(DataPath);
+if ~exist(DataPath, 'dir')
+    [created, message] = mkdir(DataPath);
+    if ~created
+        error('AMEDYST:CreateDataFolder','Cannot create %s: %s',DataPath,message);
     end
-
 end
 
 % DataFile_noRun = sprintf('%s%s_%s_%s_%s', DataPath, S.TimeStampFile, SubjectID, Environement, Task );
@@ -224,7 +202,7 @@ end
 
 % Prepare
 
-tk = strrep(Task,'ADAPT_','')
+tk = strrep(Task,'ADAPT_','');
 DataFile     = sprintf('%s%s_%s_%s_%s_%s_%s_run%0.2d', DataPath, S.TimeStampFile, SubjectID, Environement(1), tk,fdBack, sgn, RunNumber );
 DataFileName = sprintf(  '%s_%s_%s_%s_%s_%s_run%0.2d',           S.TimeStampFile, SubjectID, Environement(1), tk,fdBack, sgn, RunNumber  );
 
@@ -241,38 +219,13 @@ if isfield(S,'MEG')
 end
 
 
-%% MAIN : Controls for SubjectID depending on the Mode selected
-
-switch OperationMode
-
-    case 'Acquisition'
-
-        % Empty subject ID
-        if isempty(SubjectID)
-            error('AMEDYST:MissingSubjectID','\n For acquisition, SubjectID is required \n')
-        end
-
-        % Acquisition => save data
-        if ~get(handles.radiobutton_SaveData,'Value')
-            warning('AMEDYST:DataShouldBeSaved','\n\n\n In acquisition mode, data should be saved \n\n\n')
-        end
-
-end
-
-
 %% GUI : Parallel port ?
 
-switch get( handles.checkbox_ParPort , 'Value' )
-
-    case 1
-        if get( handles.radiobutton_EyelinkOff,'Value')
-            ParPort = 'Arduino';
-            disp('Event will send triggers via Arduino on COM Port')
-        else
-            ParPort = 'Parallel';
-        end
-    case 0
-        ParPort = 'Off';
+if get(handles.checkbox_ParPort,'Value')
+    ParPort = 'Arduino';
+    disp('Event triggers will be sent via COM/Arduino port.')
+else
+    ParPort = 'Off';
 end
 S.ParPort = ParPort;
 S.ParPortMessages = Common.PrepareParPort;
@@ -318,67 +271,12 @@ end
 S.InputMethod = InputMethod;
 S.xmin_ymin_xmax_ymax = xmin_ymin_xmax_ymax;
 
-%% GUI : Check if Eyelink toolbox is available
-
-switch get(get(handles.uipanel_EyelinkMode,'SelectedObject'),'Tag')
-
-    case 'radiobutton_EyelinkOff'
-
-        EyelinkMode = 'Off';
-
-    case 'radiobutton_EyelinkOn'
-
-        EyelinkMode = 'On';
-
-        % 'Eyelink.m' exists ?
-        status = which('Eyelink.m');
-        if isempty(status)
-            error('AMEDYST:EyelinkToolbox','no ''Eyelink.m'' detected in the path')
-        end
-
-        % Save mode ?
-        if strcmp(S.SaveMode,'NoSave')
-            error('AMEDYST:SaveModeForEyelink',' \n ---> Save mode should be turned on when using Eyelink <--- \n ')
-        end
-
-        % Eyelink connected ?
-        Eyelink.IsConnected
-
-        % File name for the eyelink : 8 char maximum
-        switch Task
-            case 'EyelinkCalibration'
-                task = 'E'; % don't care...
-            case 'SEQ'
-                task = 'S';
-            case {'ADAPT_LowReward','ADAPT_HighReward','ADAPT_Reward','ADAPT_Punishment'}
-                task = 'A';
-            otherwise
-                error('AMEDYST:Task','Task ?')
-        end
-
-        EyelinkFile_noRun = [ 'AD_' SubjectID task ];
-
-        EyelinkFile = [EyelinkFile_noRun sprintf('%0.2d',RunNumber)];
-
-        S.EyelinkFile = EyelinkFile;
-
-    otherwise
-
-        warning('AMEDYST:EyelinkMode','Error in Eyelink mode')
-
-end
-
-S.EyelinkMode = EyelinkMode;
-
 %% MAIN : Security : NEVER overwrite a file
 % If erasing a file is needed, we need to do it manually
 
-if strcmp(SaveMode,'SaveData') && strcmp(OperationMode,'Acquisition')
-
-    if exist([DataFile '.mat'], 'file')
-        error('MATLAB:FileAlreadyExists',' \n ---> \n The file %s.mat already exists .  <--- \n \n',DataFile);
-    end
-
+if exist([DataFile '.mat'], 'file') || exist([DataFile '_OUT.mat'],'file') || ...
+        exist([DataFile '_SR.mat'],'file') || exist([DataFile '_SPM.mat'],'file')
+    error('MATLAB:FileAlreadyExists','Run data already exists: %s',DataFile);
 end
 
 
@@ -404,6 +302,27 @@ end
 
 S.WindowedMode = WindowedMode;
 
+
+%% MAIN : Dependencies before opening Psychtoolbox/fullscreen
+% Load the local, original StimTemplate installation, if present.
+% Installation is explicit: run setup_StimTemplate once (online).
+localStimTemplate = fullfile(fileparts(mfilename('fullpath')), ...
+    'vendor', 'StimTemplate-master');
+if exist(fullfile(localStimTemplate,'@EventPlanning','EventPlanning.m'),'file') == 2
+    addpath(localStimTemplate);
+    rehash;
+end
+requiredClasses = {'EventPlanning','EventRecorder','SampleRecorder','KbLogger'};
+missingClasses = requiredClasses(cellfun(@(c) ...
+    exist(c,'class') ~= 8 && exist(c,'file') == 0, requiredClasses));
+if ~isempty(missingClasses)
+    error('MEG:MissingStimTemplate', [ ...
+        'Classes StimTemplate manquantes : %s.\n' ...
+        'Dans le dossier du projet, executez une fois : setup_StimTemplate\n' ...
+        'Une connexion Internet est necessaire pour ce telechargement.\n' ...
+        'Installation manuelle : https://github.com/benoitberanger/StimTemplate'], ...
+        strjoin(missingClasses,', '));
+end
 
 %% MAIN : Open PTB window & sound
 
@@ -439,7 +358,6 @@ end
 
 %% MAIN : Task run
 
-EchoStart(Task)
 
 switch Task
 
@@ -449,17 +367,15 @@ switch Task
     case {'ADAPT_Reward','ADAPT_Punishment'}
         TaskData = ADAPT.Task;
 
-    case 'EyelinkCalibration'
-        Eyelink.Calibration(S.PTB.wPtr);
-        TaskData.ER.Data = {};
-
     otherwise
         error('AMEDYST:Task','Task ?')
 end
 
-EchoStop(Task)
 
 S.TaskData = TaskData;
+% A recovery file is written immediately after the task finishes, before
+% output conversion, SPM analysis or optional plots can fail.
+save(S.DataFile,'S');
 if isfield(S,'MEG') && size(TaskData.SR.Data,1)>2
     intervals = diff(TaskData.SR.Data(:,1));
     intervals = intervals(intervals>0);
@@ -472,21 +388,20 @@ if isfield(S,'MEG') && size(TaskData.SR.Data,1)>2
 end
 % Preserve the original recorders, but never overwrite DataSR/DataOUT in cwd.
 % Raw files and CSV live alongside the phase-labelled .mat acquisition file.
-if strcmp(S.SaveMode,'SaveData') && strcmp(S.OperationMode,'Acquisition')
-    if ~exist(S.DataPath,'dir'), mkdir(S.DataPath); end
+if ~exist(S.DataPath,'dir'), mkdir(S.DataPath); end
+if isfield(TaskData,'SR')
     srD = TaskData.SR.Data;
-    outD = TaskData.OutRecorder.Data;
     save([S.DataFile '_SR.mat'],'srD');
+end
+if isfield(TaskData,'OutRecorder')
+    outD = TaskData.OutRecorder.Data;
     save([S.DataFile '_OUT.mat'],'outD');
     csvfile = fullfile(S.DataPath,[S.DataFileName,'.csv']);
     trajectory_to_CSV(TaskData.SR,TaskData.EP,csvfile);
 end
 
-%% MAIN : Save files on the fly : just a security in case of crash of the end the script
-if strcmp(S.SaveMode,'SaveData')
-    if ~exist(S.DataPath,'dir'), mkdir(S.DataPath); end
-    save(fullfile(S.DataPath,'LastS.mat'),'S');
-end
+%% MAIN : Always save a recovery snapshot (Acquisition and Debug)
+save(fullfile(S.DataPath,'LastS.mat'),'S');
 
 
 %% MAIN : Close PTB
@@ -532,21 +447,14 @@ end
 
 %% MAIN : Saving data strucure
 
-if strcmp(SaveMode,'SaveData') && strcmp(OperationMode,'Acquisition')
 
-    if ~exist(DataPath, 'dir')
-        mkdir(DataPath);
-    end
-
-    save(DataFile,     'S', 'names', 'onsets', 'durations');
-    save([DataFile '_SPM'], 'names', 'onsets', 'durations');
-    if isfield(S,'MEG') && S.MEG.Phase == 1 && ...
-            sum(S.TaskData.OutRecorder.Data(:,1)==1) == 48 && ...
-            sum(S.TaskData.OutRecorder.Data(:,1)==2) == 48
-        baselineFinishedAt = now; %#ok<NASGU>
-        save(fullfile(S.DataPath,'last_baseline_end.mat'),'baselineFinishedAt');
-    end
-
+save(DataFile, 'S', 'names', 'onsets', 'durations');
+save([DataFile '_SPM'], 'names', 'onsets', 'durations');
+if strcmp(S.OperationMode,'Acquisition') && isfield(S,'MEG') && S.MEG.Phase == 1 && ...
+        sum(S.TaskData.OutRecorder.Data(:,1)==1) == 48 && ...
+        sum(S.TaskData.OutRecorder.Data(:,1)==2) == 48
+    baselineFinishedAt = now; %#ok<NASGU>
+    save(fullfile(S.DataPath,'last_baseline_end.mat'),'baselineFinishedAt');
 end
 
 
@@ -558,21 +466,6 @@ assignin('base', 'onsets'   , onsets   );
 assignin('base', 'durations', durations);
 
 
-%% MAIN : End recording of Eyelink
-
-% Eyelink.StopRecording( S.EyelinkFile , S.DataPath )
-% 
-% % Eyelink mode 'On' ?
-% if strcmp(S.EyelinkMode,'On')
-%     % Stop recording and retrieve the file
-%     Eyelink.StopRecording( S.EyelinkFile , S.DataPath )
-%     if ~strcmp(S.Task,'EyelinkCalibration')
-%         % Rename the file
-%         movefile([S.DataPath S.EyelinkFile '.edf'], [S.DataFile '.edf'])
-%     end
-% end
-% 
-% 
 %% MAIN + GUI : Ready for another run
 
 set(handles.text_LastFileNameAnnouncer, 'Visible','on'                             )

@@ -1,13 +1,8 @@
-# Tâche joystick MEG — version mutualisée
+# Tâche joystick MEG — menu unique, version 2
 
-## But et démarrage
+## Démarrage
 
-Le programme regroupe les archives initiales `baseline` et `feedback` dans **un seul arbre MATLAB**. **Les deux boutons d'un seul menu** ouvrent respectivement :
-
-- **Tâche 1 — baseline** : 4 essais de familiarisation (bloc 0, une cible par direction), suivis des blocs 1 et 2 de 48 essais (0° avec curseur, puis 0° sans curseur pendant le mouvement).
-- **Tâche 2 — adaptation** : blocs 3 à 8 de 48 essais (déviation et visibilité selon l'ordre A–D; 5 et 8 = 0° avec curseur). Attente avant bloc 3 et entre blocs 5 et 6 pour respecter les pauses de 5 minutes.
-
-**Démarrage dans MATLAB** (répertoire de travail = dossier racine fourni, ajouté au path) :
+Dans MATLAB, se placer dans le dossier racine de cette archive et exécuter :
 
 ```matlab
 cd('CHEMIN/VERS/JOYSTICK_MEG_UNIFIE')
@@ -15,52 +10,69 @@ addpath(pwd)
 AMEDYST_main
 ```
 
-Renseigner `Subject ID`, le mode `Acquisition`, l'option `Save data`, le dispositif (joystick calibré, souris pour le débogage), l'écran, la **largeur physique de l'écran en mm** (mesurer la surface d'affichage), et l'**ordre inter-participants A–D**. Les anciens réglages de score *Reward/Punishment* sont proposés séparément ; ils ne pilotent **pas** la visibilité du curseur.
+Le menu propose **Tâche 1 : Baseline** et **Tâche 2 : Adaptation**. Elles partagent un moteur expérimental unique (`+ADAPT/Task.m`, `+ADAPT/Planning.m`). Renseigner le sujet (identifiant à 2 caractères), le mode Acquisition ou Debug, le joystick calibré ou la souris, l'écran, le contrebalancement A–D et la règle de score. L'option de marqueurs COM/Arduino est **désactivée par défaut** et ne doit être cochée que si un Arduino est effectivement connecté.
 
-## Contrebalancement
+**L'enregistrement est systématique**, en Acquisition comme en Debug. Il n'existe plus de bouton Save/No save. Les fichiers sont placés dans `data/<SubjectID>/` : fichier de session `.mat`, `_SPM.mat`, `_SR.mat`, `_OUT.mat`, `.csv` et `LastS.mat`. Le programme calcule un nouveau numéro de run et refuse d'écraser un fichier de run existant. Le fichier `LastS.mat` est intentionnellement mis à jour à chaque session. Après la fin de la tâche, une première sauvegarde du fichier de session est effectuée **avant les analyses et graphiques**. Ce mécanisme ne garantit pas de récupérer un essai interrompu avant la fin de l'exécution de la tâche.
+
+**EyeLink a été supprimé** : ni mode, ni calibration, ni bibliothèque EyeLink ne sont nécessaires. Les marqueurs optionnels COM/Arduino restent disponibles. Les appels `EchoStart`/`EchoStop` et les deux anciens callbacks manquants `GUI.*` ont également été remplacés ou supprimés.
+
+**La largeur physique de l'écran n'est plus demandée.** Les stimuli utilisent les tailles relatives issues du code original (grand cercle = 80 % de la hauteur de la fenêtre ; diamètre cible/croix = 20/320 de celui du grand cercle ; diamètre du curseur = 16/320), avec cercle et croix blancs. Les dimensions physiques exactes « 320 mm / 20 mm / 16 mm » du document MEG ne peuvent donc plus être garanties. Cela ne change pas les positions angulaires des cibles ni la logique des essais.
+
+## Protocole conservé
+
+**Tâche 1** : 4 essais de familiarisation (bloc 0), puis blocs 1 et 2 de 48 essais (0° visible, puis 0° sans curseur pendant le mouvement).
+
+**Tâche 2** : blocs 3 à 8, de 48 essais. Blocs 3–4 et 6–7 avec rotation et visibilité selon le contrebalancement, blocs 5 et 8 à 0° avec curseur. Deux pauses de 5 minutes entre les blocs 2→3 et 5→6, en Acquisition. En `FastDebug`, 4 essais par bloc, sans les pauses longues.
 
 | Ordre | Blocs 3–4 | Blocs 6–7 |
 |---|---|---|
-| A | +30° (sens horaire), avec curseur | −30° (antihoraire), sans curseur |
-| B | −30° (antihoraire), avec curseur | +30° (horaire), sans curseur |
-| C | −30° (antihoraire), sans curseur | +30° (horaire), avec curseur |
-| D | +30° (horaire), sans curseur | −30° (antihoraire), avec curseur |
+| A | +30° horaire, avec curseur | −30° antihoraire, sans curseur |
+| B | −30° antihoraire, avec curseur | +30° horaire, sans curseur |
+| C | −30° antihoraire, sans curseur | +30° horaire, avec curseur |
+| D | +30° horaire, sans curseur | −30° antihoraire, avec curseur |
 
-Le moteur effectue la rotation des **incréments** du joystick. Dans ce nouveau protocole, le signe des degrés suit le sens physique du document : **+ = horaire** sur l'écran. Les enregistrements conservent les numéros absolus des blocs (0–8) et le type d'essai. La liste pseudo-aléatoire de 4 cibles est renouvelée après chaque cycle complet.
+Quatre cibles : 20°, 60°, 120°, 160° ; permutation aléatoire par cycle de 4 essais. Mouvement trop rapide en dessous de 100 ms, trop lent au-delà de 600 ms ; maintien au centre de 200 ms ; intervalle inter-essais demandé entre 3,5 et 4,5 s. La rotation est appliquée aux incréments du joystick, comme dans l'archive source.
 
-## Chronométrie et afficheur
+## Dépendances et messages d'erreur
 
-- Cibles : 20°, 60°, 120°, 160° ; fixation et cible 20 mm, curseur et marqueur 16 mm, cercle externe 320 mm ; distance du participant à l'écran **800 mm** à régler physiquement.
-- Passage au centre et maintien de **200 ms** pour valider le départ suivant.
-- Mouvements **<100 ms** : « Too fast » ; mouvements **>600 ms** : « Too slow ».
-- Intervalle cible entre fin d'un mouvement et début de l'essai suivant : **3,5 à 4,5 s**. Le temps de retour au centre peut prolonger cet intervalle.
-- Pauses **300 s** entre blocs 2→3 et 5→6. La tâche 1 enregistre sa date de fin ; la tâche 2 attend uniquement le reliquat des cinq minutes. Sans trace récente de tâche 1, elle attend 300 s.
-- En `FastDebug` : 4 essais par bloc et pauses longues désactivées ; en `Acquisition`, 48 essais par bloc.
-- La largeur physique est **obligatoire** et n'est volontairement pas préremplie : une mauvaise valeur fausserait les dimensions en mm.
+Il faut MATLAB, Psychtoolbox et la bibliotheque libre **StimTemplate** (`EventPlanning`, `EventRecorder`, `SampleRecorder`, `KbLogger`). Pour installer la version officielle dans le projet, executer **une fois** `setup_StimTemplate` dans MATLAB avec une connexion Internet. `AMEDYST_main` ajoutera ensuite automatiquement la copie locale au `path` MATLAB. Si le poste experimental est hors ligne, telecharger StimTemplate sur un autre poste depuis https://github.com/benoitberanger/StimTemplate et copier le dossier decompresse `StimTemplate-master` dans `vendor/`. La bibliotheque officielle est sous licence Apache-2.0 ; son code n'est pas modifie. Si elle n'est pas accessible, un message `MEG:MissingStimTemplate` donne les instructions. Le joystick réel utilise `joymex2` (fichiers binaires inclus pour Windows/Linux, compatibilité à vérifier selon le poste) ; la souris permet des essais de débogage.
 
-## Architecture et sorties
+La fréquence de **140 Hz n'est pas garantie** : le moteur original enregistre les positions lors des rafraîchissements de l'écran. La fréquence réelle de la chaîne joystick-écran-acquisition doit être mesurée sur le matériel.
 
-- `AMEDYST_GUI.m` : menu unique, calibration et paramètres matériels.
-- `AMEDYST_main.m` : configuration, ouverture de Psychtoolbox, lancement, sauvegarde, statistiques.
-- `+MEG/BuildParadigm.m` : table canonique des blocs ; `+ADAPT/Planning.m` : tirage et planification des essais.
-- `+ADAPT/Task.m` : une seule boucle d'essai pour les deux tâches ; `+ADAPT/ApplyDeviation.m` et `UpdateCursor.m` : moteur commun.
-- `+MEG/ApplyDisplayGeometry.m` : conversion millimètres → pixels, vérification de place à l'écran ; `+MEG/RemainingFirstBreak.m` : transition inter-tâches.
-- `data/<SubjectID>/` : un fichier principal `.mat` avec `S`, son fichier `_SPM.mat`, des fichiers `_SR.mat` et `_OUT.mat`, un CSV, et éventuellement `last_baseline_end.mat`. Les noms incluent la phase et l'ordre de contrebalancement. Aucune écriture automatique dans les anciens `DataSR.mat`/`DataOUT.mat` de la racine.
+## Vérification
 
-## Dépendances et validations nécessaires avant expérimentation
-
-MATLAB avec **Psychtoolbox**, classes **StimTemplate** (notamment `EventPlanning`, `SampleRecorder`, `EventRecorder`, `KbLogger`, `EchoStart/EchoStop`), `joymex2` compatible avec le système, matériel réel, et éventuellement modules d'interface MEG/Arduino. L'archive d'origine référence StimTemplate sans l'inclure.
-
-**Important :** l'ancien moteur enregistre un échantillon à chaque `Screen('Flip')`. La spécification « trajectoires échantillonnées à **140 Hz** » est **non garantie** si l'écran tourne à 60/120 Hz. Un avertissement indique la fréquence de l'écran et la fréquence médiane mesurée. Une acquisition indépendante de l'affichage et une validation sur joystick MEG doivent être réalisées avant une étude réelle.
-
-**Non vérifié ici :** l'exécution sur MATLAB/Psychtoolbox/joystick MEG (absents de l'environnement), la latence, le TTL, les couleurs/géométries finales sur le moniteur, les marqueurs/trigger hardware. Effectuer les assertions (`tests/test_protocol.m`) dans MATLAB et une session `FastDebug` sur le matériel avant toute acquisition.
-
-### Test de la planification dans MATLAB
+Dans MATLAB, après avoir ajouté le dossier racine au `path` :
 
 ```matlab
-addpath(pwd)
 addpath(fullfile(pwd,'tests'))
 test_protocol
 ```
 
-La définition source du protocole est le document joint « MEG Experimental paradigm » (brouillon). Il n'indique ni un modèle de joystick MEG précis ni la règle de score à conserver ; les réglages existants restent sélectionnables.
+Les vérifications statiques Python se lancent depuis le dossier racine : `python tests/static_check.py` puis `python tests/test_refactor_v2.py`. **MATLAB, Psychtoolbox et le joystick MEG n'ont pas pu être exécutés ici.** Vérifier sur poste expérimental l'affichage, le timing, la calibration, les éventuels marqueurs Arduino et la sauvegarde avant toute acquisition réelle.
+
+
+## Installation de StimTemplate — correction de l'erreur V2
+
+La version V2 contenait un controle bloquant mais **pas** la bibliotheque.
+La version V3 contient `setup_StimTemplate.m`, l'installateur de la bibliotheque publique originale.
+
+```matlab
+cd('CHEMIN/VERS/JOYSTICK_MEG_UNIFIE')
+setup_StimTemplate  % Une seule fois, connexion Internet requise
+AMEDYST_main
+```
+
+Les sources de StimTemplate sont telechargees depuis :
+https://github.com/benoitberanger/StimTemplate
+Licence originale : Apache License 2.0, fichier `vendor/StimTemplate-master/LICENSE.md`.
+Ce projet ne copie ni ne modifie son code lors de la distribution de l'archive.
+
+En l'absence de reseau sur le poste experimental : recuperer le ZIP de StimTemplate sur un
+autre ordinateur, decompresser son contenu et placer le dossier `StimTemplate-master`
+dans `JOYSTICK_MEG_UNIFIE/vendor/`. La commande `AMEDYST_main` le detectera.
+
+Le message `No trigger will be sent.` n'est pas une erreur : il indique simplement que
+l'envoi des marqueurs Arduino/COM est desactive dans le menu.
+
+**Rappel :** validation de l'execution, du joystick MEG et des timings necessaire sur
+le poste experimental. La frequence de 140 Hz n'est pas garantie par le code original.

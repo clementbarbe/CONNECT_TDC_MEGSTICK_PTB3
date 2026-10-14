@@ -4,7 +4,7 @@ global S
 
 %% Echo in command window
 
-EchoStart(mfilename)
+
 
 
 %% Audio
@@ -131,7 +131,7 @@ KbCheck;
 
 %% Echo in command window
 
-EchoStop(mfilename)
+
 
 
 end

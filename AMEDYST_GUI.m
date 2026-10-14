@@ -10,7 +10,6 @@ debug = 0;
 % KND: Force debug mode for me...
 if contains(which('AMEDYST_GUI'),'karim.ndiaye')
     debug = 1;
-    addpath 'C:\Users\karim.ndiaye\OneDrive - ICM\PRISME\Studies\Amedyst (BRACCO Martina)\code\StimTemplate-master'
 end
 
 %% Open a singleton figure, or gring the actual into focus.
@@ -64,7 +63,7 @@ else % Create the figure
     panelProp.wP    = 1 - panelProp.xposP * 2;
 
     panelProp.vect  = ...
-        [1 4 2 1 1 2 ]; % relative proportions of each panel, from bottom to top
+        [1 4 2 1 2 ]; % relative proportions of each panel, from bottom to top
 
     panelProp.vectLength    = length(panelProp.vect);
     panelProp.vectTotal     = sum(panelProp.vect);
@@ -144,7 +143,7 @@ else % Create the figure
         'String','Check SubjectID data',...
         'BackgroundColor',buttonBGcolor,...
         'TooltipString','Display in Command Window the content of data/(SubjectID)',...
-        'Callback',@(hObject,eventdata)GUI.Pushbutton_Check_SubjectID_data_Callback(handles.edit_SubjectID,eventdata));
+        'Callback',@(hObject,eventdata)checkSubjectData(handles.edit_SubjectID));
 
     % ---------------------------------------------------------------------
     % Text : Last file name annoucer
@@ -176,64 +175,6 @@ else % Create the figure
         'String','',...
         'BackgroundColor',figureBGcolor,...
         'Visible','Off');
-
-    %% Panel : Save mode
-
-    p_sm.x = panelProp.xposP;
-    p_sm.w = panelProp.wP;
-
-    panelProp.countP = panelProp.countP - 1;
-    p_sm.y = panelProp.yposP(panelProp.countP);
-    p_sm.h = panelProp.unitWidth*panelProp.vect(panelProp.countP);
-
-    handles.uipanel_SaveMode = uibuttongroup(handles.(mfilename),...
-        'Title','Save mode',...
-        'Units', 'Normalized',...
-        'Position',[p_sm.x p_sm.y p_sm.w p_sm.h],...
-        'BackgroundColor',figureBGcolor);
-
-    p_sm.nbO    = 2; % Number of objects
-    p_sm.Ow     = 1/(p_sm.nbO + 1); % Object width
-    p_sm.countO = 0; % Object counter
-    p_sm.xposO  = @(countO) p_sm.Ow/(p_sm.nbO+1)*countO + (countO-1)*p_sm.Ow;
-
-    % ---------------------------------------------------------------------
-    % RadioButton : Save Data
-
-    p_sm.countO = p_sm.countO + 1;
-    r_sd.x   = p_sm.xposO(p_sm.countO);
-    r_sd.y   = 0.1 ;
-    r_sd.w   = p_sm.Ow;
-    r_sd.h   = 0.8;
-    r_sd.tag = 'radiobutton_SaveData';
-    handles.(r_sd.tag) = uicontrol(handles.uipanel_SaveMode,...
-        'Style','radiobutton',...
-        'Units', 'Normalized',...
-        'Position',[r_sd.x r_sd.y r_sd.w r_sd.h],...
-        'String','Save data',...
-        'TooltipString','Save data to : ./data/SubjectID/...',...
-        'HorizontalAlignment','Center',...
-        'Tag',r_sd.tag,...
-        'BackgroundColor',figureBGcolor);
-
-    % ---------------------------------------------------------------------
-    % RadioButton : No save
-
-    p_sm.countO = p_sm.countO + 1;
-    r_ns.x   = p_sm.xposO(p_sm.countO);
-    r_ns.y   = 0.1 ;
-    r_ns.w   = p_sm.Ow;
-    r_ns.h   = 0.8;
-    r_ns.tag = 'radiobutton_NoSave';
-    handles.(r_ns.tag) = uicontrol(handles.uipanel_SaveMode,...
-        'Style','radiobutton',...
-        'Units', 'Normalized',...
-        'Position',[r_ns.x r_ns.y r_ns.w r_ns.h],...
-        'String','No save',...
-        'TooltipString','In Acquisition mode, Save mode must be engaged',...
-        'HorizontalAlignment','Center',...
-        'Tag',r_ns.tag,...
-        'BackgroundColor',figureBGcolor);
 
     %% Panel : Environement
 
@@ -294,230 +235,37 @@ else % Create the figure
         'BackgroundColor',figureBGcolor);
 
 
-    %% Panel : Eyelink mode
-
-    el_shift = 0.30;
-
-    p_el.x = panelProp.xposP + el_shift;
-    p_el.w = panelProp.wP - el_shift ;
-
+    %% Display and optional Arduino triggers
+    p_screen.x = panelProp.xposP;
+    p_screen.w = panelProp.wP;
     panelProp.countP = panelProp.countP - 1;
-    p_el.y = panelProp.yposP(panelProp.countP);
-    p_el.h = panelProp.unitWidth*panelProp.vect(panelProp.countP);
-
-    handles.uipanel_EyelinkMode = uibuttongroup(handles.(mfilename),...
-        'Title','Eyelink mode',...
-        'Units', 'Normalized',...
-        'Position',[p_el.x p_el.y p_el.w p_el.h],...
-        'BackgroundColor',figureBGcolor,...
-        'SelectionChangeFcn',@uipanel_EyelinkMode_SelectionChangeFcn);
-
-    % ---------------------------------------------------------------------
-    % Checkbox : Windowed screen
-
-    c_ws.x = panelProp.xposP;
-    c_ws.w = el_shift - panelProp.xposP;
-
-    c_ws.y = panelProp.yposP(panelProp.countP)-0.01 ;
-    c_ws.h = p_el.h * 0.3;
-
-    handles.checkbox_WindowedScreen = uicontrol(handles.(mfilename),...
-        'Style','checkbox',...
-        'Units', 'Normalized',...
-        'Position',[c_ws.x c_ws.y c_ws.w c_ws.h],...
-        'String','Windowed screen',...
-        'HorizontalAlignment','Center',...
-        'BackgroundColor',figureBGcolor);
-    %KND
-    if debug
-        set(handles.checkbox_WindowedScreen,'Value',1);
-    end
-
-    % ---------------------------------------------------------------------
-    % Listbox : Screens
-
-    l_sc.x = panelProp.xposP;
-    l_sc.w = el_shift - panelProp.xposP;
-
-    l_sc.y = c_ws.y + c_ws.h ;
-    l_sc.h = p_el.h * 0.6;
-
-    handles.listbox_Screens = uicontrol(handles.(mfilename),...
-        'Style','listbox',...
-        'Units', 'Normalized',...
-        'Position',[l_sc.x l_sc.y l_sc.w l_sc.h],...
-        'String',{'0' '1' '2'},...
-        'TooltipString','Select the display mode   PTB : 0 for extended display (over all screens) , 1 for screen 1 , 2 for screen 2 , etc.',...
-        'HorizontalAlignment','Center',...
-        'CreateFcn',@GUI.Listbox_Screens_CreateFcn);
-
-
-    % ---------------------------------------------------------------------
-    % Text : ScreenMode
-
-    t_sm.x = panelProp.xposP;
-    t_sm.w = el_shift - panelProp.xposP;
-
-    t_sm.y = l_sc.y + l_sc.h ;
-    t_sm.h = p_el.h * 0.15;
-
-    handles.text_ScreenMode = uicontrol(handles.(mfilename),...
-        'Style','text',...
-        'Units', 'Normalized',...
-        'Position',[t_sm.x t_sm.y t_sm.w t_sm.h],...
-        'String','Screen mode selection',...
-        'TooltipString','Output of Screen(''Screens'')   Use ''Screen Screens?'' in Command window for help',...
-        'HorizontalAlignment','Center',...
+    p_screen.y = panelProp.yposP(panelProp.countP);
+    p_screen.h = panelProp.unitWidth * panelProp.vect(panelProp.countP);
+    handles.uipanel_Display = uipanel(handles.(mfilename),...
+        'Title','Affichage et marqueurs','Units','Normalized',...
+        'Position',[p_screen.x p_screen.y p_screen.w p_screen.h],...
         'BackgroundColor',figureBGcolor);
 
+    handles.checkbox_WindowedScreen = uicontrol(handles.uipanel_Display,...
+        'Style','checkbox','Units','Normalized','Position',[0.04 0.20 0.28 0.25],...
+        'String','Windowed screen','BackgroundColor',figureBGcolor);
+    if debug, set(handles.checkbox_WindowedScreen,'Value',1); end
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    handles.listbox_Screens = uicontrol(handles.uipanel_Display,...
+        'Style','listbox','Units','Normalized','Position',[0.37 0.12 0.20 0.67],...
+        'String',{'0','1','2'},...
+        'TooltipString','Selectionner l ecran Psychtoolbox',...
+        'CreateFcn',@populateScreens);
+    handles.text_ScreenMode = uicontrol(handles.uipanel_Display,...
+        'Style','text','Units','Normalized','Position',[0.37 0.80 0.22 0.15],...
+        'String','Ecran','BackgroundColor',figureBGcolor);
 
-    p_el_up.nbO    = 6; % Number of objects
-    p_el_up.Ow     = 1/(p_el_up.nbO + 1); % Object width
-    p_el_up.countO = 0; % Object counter
-    p_el_up.xposO  = @(countO) p_el_up.Ow/(p_el_up.nbO+1)*countO + (countO-1)*p_el_up.Ow;
-    p_el_up.y      = 0.6;
-    p_el_up.h      = 0.3;
-
-    % ---------------------------------------------------------------------
-    % RadioButton : Eyelink ON
-
-    p_el_up.countO = p_el_up.countO + 1;
-    r_elon.x   = p_el_up.xposO(p_el_up.countO);
-    r_elon.y   = p_el_up.y ;
-    r_elon.w   = p_el_up.Ow;
-    r_elon.h   = p_el_up.h;
-    r_elon.tag = 'radiobutton_EyelinkOn';
-    handles.(r_elon.tag) = uicontrol(handles.uipanel_EyelinkMode,...
-        'Style','radiobutton',...
-        'Units', 'Normalized',...
-        'Position',[r_elon.x r_elon.y r_elon.w r_elon.h],...
-        'String','On',...
-        'HorizontalAlignment','Center',...
-        'Tag',r_elon.tag,...
-        'BackgroundColor',figureBGcolor,...
-        'Visible','On');
-
-
-    % ---------------------------------------------------------------------
-    % RadioButton : Eyelink OFF
-
-    p_el_up.countO = p_el_up.countO + 1;
-    r_eloff.x   = p_el_up.xposO(p_el_up.countO);
-    r_eloff.y   = p_el_up.y ;
-    r_eloff.w   = p_el_up.Ow;
-    r_eloff.h   = p_el_up.h;
-    r_eloff.tag = 'radiobutton_EyelinkOff';
-    handles.(r_eloff.tag) = uicontrol(handles.uipanel_EyelinkMode,...
-        'Style','radiobutton',...
-        'Units', 'Normalized',...
-        'Position',[r_eloff.x r_eloff.y r_eloff.w r_eloff.h],...
-        'String','Off',...
-        'HorizontalAlignment','Center',...
-        'Tag',r_eloff.tag,...
-        'BackgroundColor',figureBGcolor,...
-        'Visible','On');
-
-
-    % ---------------------------------------------------------------------
-    % Checkbox : Parallel port
-
-    p_el_up.countO = p_el_up.countO + 1;
-    c_pp.x = p_el_up.xposO(p_el_up.countO);
-    c_pp.y = p_el_up.y ;
-    c_pp.w = p_el_up.Ow*2;
-    c_pp.h = p_el_up.h;
-    handles.checkbox_ParPort = uicontrol(handles.uipanel_EyelinkMode,...
-        'Style','checkbox',...
-        'Units', 'Normalized',...
-        'Position',[c_pp.x c_pp.y c_pp.w c_pp.h],...
-        'String','Parallel port',...
-        'HorizontalAlignment','Center',...
-        'TooltipString','Send messages via parallel port : useful for Eyelink',...
-        'BackgroundColor',figureBGcolor,...
-        'Value',1,...
-        'Callback',@GUI.Checkbox_ParPort_Callback,...
-        'CreateFcn',@GUI.Checkbox_ParPort_Callback);
-
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    p_el_dw.nbO    = 3; % Number of objects
-    p_el_dw.Ow     = 1/(p_el_dw.nbO + 1); % Object width
-    p_el_dw.countO = 0; % Object counter
-    p_el_dw.xposO  = @(countO) p_el_dw.Ow/(p_el_dw.nbO+1)*countO + (countO-1)*p_el_dw.Ow;
-    p_el_dw.y      = 0.1;
-    p_el_dw.h      = 0.4 ;
-
-
-    % ---------------------------------------------------------------------
-    % Pushbutton : Eyelink Initialize
-
-    p_el_dw.countO = p_el_dw.countO + 1;
-    b_init.x = p_el_dw.xposO(p_el_dw.countO);
-    b_init.y = p_el_dw.y ;
-    b_init.w = p_el_dw.Ow;
-    b_init.h = p_el_dw.h;
-    handles.pushbutton_Initialize = uicontrol(handles.uipanel_EyelinkMode,...
-        'Style','pushbutton',...
-        'Units', 'Normalized',...
-        'Position',[b_init.x b_init.y b_init.w b_init.h],...
-        'String','Initialize',...
-        'BackgroundColor',buttonBGcolor,...
-        'Callback','Eyelink.Initialize');
-
-    % ---------------------------------------------------------------------
-    % Pushbutton : Eyelink IsConnected
-
-    p_el_dw.countO = p_el_dw.countO + 1;
-    b_isco.x = p_el_dw.xposO(p_el_dw.countO);
-    b_isco.y = p_el_dw.y ;
-    b_isco.w = p_el_dw.Ow;
-    b_isco.h = p_el_dw.h;
-    handles.pushbutton_IsConnected = uicontrol(handles.uipanel_EyelinkMode,...
-        'Style','pushbutton',...
-        'Units', 'Normalized',...
-        'Position',[b_isco.x b_isco.y b_isco.w b_isco.h],...
-        'String','IsConnected',...
-        'BackgroundColor',buttonBGcolor,...
-        'Callback','Eyelink.IsConnected');
-
-
-    % ---------------------------------------------------------------------
-    % Pushbutton : Eyelink Calibration
-
-    p_el_dw.countO = p_el_dw.countO + 1;
-    b_cal.x   = p_el_dw.xposO(p_el_dw.countO);
-    b_cal.y   = p_el_dw.y ;
-    b_cal.w   = p_el_dw.Ow;
-    b_cal.h   = p_el_dw.h;
-    b_cal.tag = 'pushbutton_EyelinkCalibration';
-    handles.(b_cal.tag) = uicontrol(handles.uipanel_EyelinkMode,...
-        'Style','pushbutton',...
-        'Units', 'Normalized',...
-        'Position',[b_cal.x b_cal.y b_cal.w b_cal.h],...
-        'String','Calibration',...
-        'BackgroundColor',buttonBGcolor,...
-        'Tag',b_cal.tag,...
-        'Callback',@AMEDYST_main);
-
-
-    % ---------------------------------------------------------------------
-    % Pushbutton : Eyelink force shutdown
-
-    b_fsd.x = c_pp.x + c_pp.h;
-    b_fsd.y = p_el_up.y ;
-    b_fsd.w = p_el_dw.Ow*1.25;
-    b_fsd.h = p_el_dw.h;
-    handles.pushbutton_ForceShutDown = uicontrol(handles.uipanel_EyelinkMode,...
-        'Style','pushbutton',...
-        'Units', 'Normalized',...
-        'Position',[b_fsd.x b_fsd.y b_fsd.w b_fsd.h],...
-        'String','ForceShutDown',...
-        'BackgroundColor',buttonBGcolor,...
-        'Callback','Eyelink.ForceShutDown');
-
+    handles.checkbox_ParPort = uicontrol(handles.uipanel_Display,...
+        'Style','checkbox','Units','Normalized','Position',[0.64 0.29 0.34 0.36],...
+        'String','Marqueurs COM/Arduino',...
+        'TooltipString','Activer uniquement si un Arduino pour les triggers est branche',...
+        'BackgroundColor',figureBGcolor,'Value',0,...
+        'Callback',@Common.Checkbox_ArduinoPort_Callback);
 
     %% Panel : Task : ADAPT
 
@@ -679,14 +427,6 @@ else % Create the figure
     handles.popup_Scoring = uicontrol(handles.uipanel_Task_ADAPT,...
         'Style','popupmenu','Units','normalized','Position',[0.65 0.44 0.34 0.10],...
         'String',{'Reward (historique)','Punishment (historique)'},'Value',1);
-    handles.text_DisplayWidth = uicontrol(handles.uipanel_Task_ADAPT,...
-        'Style','text','Units','normalized','Position',[0.65 0.32 0.34 0.10],...
-        'String','Largeur ecran (mm)','BackgroundColor',figureBGcolor);
-    handles.edit_DisplayWidthMm = uicontrol(handles.uipanel_Task_ADAPT,...
-        'Style','edit','Units','normalized','Position',[0.69 0.22 0.20 0.10],...
-        'String','','BackgroundColor',editBGcolor,...
-        'Tooltip','Mesurer la largeur physique de la surface d affichage en mm');
-
     %% Panel : Cursor input method
 
     p_cursorinput.x = panelProp.xposP;
@@ -927,14 +667,6 @@ else % Create the figure
     %% KND: Pre-set options for faster testing by me...
     if contains(which('AMEDYST_GUI'),'karim.ndiaye')
         set(findall(0,'Tag','AMEDYST_GUI'),'Position', [ 20 60 600 600]);
-        set(handles.radiobutton_EyelinkOff,'Value',1)
-        uipanel_EyelinkMode_SelectionChangeFcn(...
-            handles.AMEDYST_GUI,struct('EventName','knd',...
-            'Source',handles.radiobutton_EyelinkOff,....
-            'NewValue',handles.radiobutton_EyelinkOff ))
-
-        set(handles.radiobutton_NoSave,'Value',1)
-
         set(handles.radiobutton_Mouse,'Value',1)
         set(handles.edit_SubjectID, 'String', '00')
         set(handles.edit_DeviationSign, 'String', '+')
@@ -961,6 +693,39 @@ end % main function
 %% GUI Functions
 
 % -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
+function populateScreens(hObject, ~)
+% Populate Psychtoolbox screen choices without the absent +GUI library.
+screens = 0;
+if exist('Screen','file')
+    try
+        screens = Screen('Screens');
+    catch err
+        warning('MEG:ScreenList','Cannot enumerate screens: %s',err.message);
+    end
+end
+if isempty(screens), screens = 0; end
+set(hObject,'String',arrayfun(@num2str,screens(:),'UniformOutput',false), ...
+    'Value',numel(screens));
+end
+
+% -------------------------------------------------------------------------
+function checkSubjectData(editHandle)
+% Local replacement of the missing GUI.Pushbutton_Check_SubjectID_data_Callback.
+subjectID = get(editHandle,'String');
+if isempty(subjectID)
+    fprintf('Please enter a Subject ID first.\n');
+    return
+end
+dataPath = fullfile(fileparts(mfilename('fullpath')),'data',subjectID);
+if exist(dataPath,'dir')
+    fprintf('Files for subject %s: %s\n',subjectID,dataPath);
+    disp(dir(dataPath));
+else
+    fprintf('No data directory yet for subject %s.\n',subjectID);
+end
+end
+
 function edit_SubjectID_Callback(hObject, ~)
 
 NrChar = 2;
@@ -1007,33 +772,6 @@ end % function
 
 
 % -----------------------------------------²--------------------------------
-function uipanel_EyelinkMode_SelectionChangeFcn(hObject, eventdata)
-handles = guidata(hObject);
-
-switch get(eventdata.NewValue,'Tag') % Get Tag of selected object.
-    case 'radiobutton_EyelinkOff'
-        set(handles.pushbutton_EyelinkCalibration,'Visible','off')
-        set(handles.pushbutton_IsConnected       ,'Visible','off')
-        set(handles.pushbutton_ForceShutDown     ,'Visible','off')
-        set(handles.pushbutton_Initialize        ,'Visible','off')
-        % KND: Added option for Arduino Port
-       set(handles.checkbox_ParPort,'Callback',@Common.Checkbox_ArduinoPort_Callback);
-       set(handles.checkbox_ParPort,'String','COM/Arduino Markers');
-
-    case 'radiobutton_EyelinkOn'
-        set(handles.pushbutton_EyelinkCalibration,'Visible','on')
-        set(handles.pushbutton_IsConnected       ,'Visible','on')
-        set(handles.pushbutton_ForceShutDown     ,'Visible','on')
-        set(handles.pushbutton_Initialize        ,'Visible','on')
-        set(handles.checkbox_ParPort,'Callback',@GUI.Checkbox_ParPort_Callback);
-       set(handles.checkbox_ParPort,'String','Parallel Port Markers     ');
-
-end
-
-end % function
-
-
-% -------------------------------------------------------------------------
 function uipanel_CursorInput_SelectionChangeFcn(hObject, eventdata)
 handles = guidata(hObject);
 

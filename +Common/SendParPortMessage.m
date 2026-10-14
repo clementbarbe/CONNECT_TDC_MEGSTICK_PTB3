@@ -13,7 +13,6 @@ elseif strcmp( S.ParPort , 'Arduino' )
     IOPort( 'Write', S.h_ArduinoPort, uint8(S.ParPortMessages.(message)));
     WaitSecs( S.ParPortMessages.duration  );
     IOPort( 'Write', S.h_ArduinoPort, uint8( 0 ) );
-%     Eyelink('Message',[message ' ' num2str(S.ParPortMessages.(message))])
 end
 
 if S.Verbosity

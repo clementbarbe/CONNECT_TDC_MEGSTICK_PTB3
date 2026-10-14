@@ -1,0 +1,7 @@
+Installer StimTemplate (Apache-2.0) en tapant setup_StimTemplate dans MATLAB.
+
+Ou copier manuellement un dossier StimTemplate-master depuis
+https://github.com/benoitberanger/StimTemplate
+dans ce dossier vendor/.
+
+L'archive ne contient pas les fichiers de code externes de StimTemplate.

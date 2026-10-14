@@ -1,6 +1,7 @@
 function h_ArduinoPortOut=OpenCOMArduinoPort(ARDUINO_PORTS)
 persistent h_ArduinoPort
 global S
+err_msg = 'No serial port could be opened';
 if nargin<1 || isempty(ARDUINO_PORTS)
     if ~isfield(S,'h_ArduinoPort') || isempty(S.h_ArduinoPort)
         S.h_ArduinoPort = h_ArduinoPort;
@@ -14,13 +15,6 @@ if nargin<1 || isempty(ARDUINO_PORTS)
         disp(S.h_ArduinoPort)
         h_ArduinoPortOut = h_ArduinoPort;
         
-        % Connect
-        Eyelink.Initialize();
-        % Need parameters ?
-        Eyelink.LoadParameters();
-        % is connected ?
-        Eyelink.IsConnected();
-
         return
     catch
         h_ArduinoPort = [];
@@ -48,7 +42,7 @@ while(isempty(h_ArduinoPort) && i_port<=n_ports)
         IOPort('Write', h_ArduinoPort, uint8( 0 ) );
         fprintf('Arduino Port %s is open',ARDUINO_PORTS{i_port});
     catch ME_arduino
-        sca
+        err_msg = ME_arduino.message;
         h_ArduinoPort = [];
         warning('Atrduino Port %s will not be used',ARDUINO_PORTS{i_port});
     end

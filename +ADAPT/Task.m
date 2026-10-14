@@ -23,9 +23,6 @@ try
     Probability            = ADAPT.Prepare.Probability;
     MarkingPoint           = Cursor.CopyObject;
 
-    %% Eyelink
-%     Common.StartRecordingEyelink
-
     %% Go
     % Initialize some variables
     EXIT = 0;
@@ -525,7 +522,7 @@ try
 
                     % Record trial onset & step onset
                     if counter_step_show_reward_notes == 1
-                        %RR.AddEvent({['ShowNote__' EP.Data{evt,1}] lastFlipOnset-StartTS.EyelinkFileime [] EP.Data{evt,4} EP.Data{evt,5} EP.Data{evt,6} EP.Data{evt,7} EP.Data{evt,8} EP.Data{evt,9}})
+                        %RR.AddEvent({['ShowNote__' EP.Data{evt,1}] lastFlipOnset-StartTime [] EP.Data{evt,4} EP.Data{evt,5} EP.Data{evt,6} EP.Data{evt,7} EP.Data{evt,8} EP.Data{evt,9}})
                         RR.AddEvent([{['ShowNote__' EP.Data{evt,1}] lastFlipOnset-StartTime []} EP.Data(evt,4:end) ]);
                         step6onset = lastFlipOnset;
                         Common.SendParPortMessage( 'ShowNote' )

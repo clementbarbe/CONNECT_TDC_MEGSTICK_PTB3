@@ -5,7 +5,7 @@ global S
 
 %% Echo in command window
 
-EchoStart(mfilename)
+
 
 
 %% Paths
@@ -35,13 +35,6 @@ EchoStart(mfilename)
 %%%%%%%%%%%%%%
 %   Screen   %
 %%%%%%%%%%%%%%
-Parameters.Video.ScreenWidthPx   = 1024;  % Number of horizontal pixel in MRI video system @ CENIR
-Parameters.Video.ScreenHeightPx  = 768;   % Number of vertical pixel in MRI video system @ CENIR
-Parameters.Video.ScreenFrequency = 60;    % Refresh rate (in Hertz)
-Parameters.Video.SubjectDistance = 0.120; % m
-Parameters.Video.ScreenWidthM    = 0.040; % m
-Parameters.Video.ScreenHeightM   = 0.030; % m
-
 Parameters.Video.ScreenBackgroundColor = [50 50 50]; % [R G B] ( from 0 to 255 )
 
 %%%%%%%%%%%%
@@ -166,7 +159,7 @@ Parameters.Fingers.Names    = {'L5' 'L4' 'L3' 'L2' 'L1' 'R1' 'R2' 'R3' 'R4' 'R5'
 
 %% Echo in command window
 
-EchoStop(mfilename)
+
 
 
 end

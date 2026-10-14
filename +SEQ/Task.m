@@ -27,10 +27,6 @@ try
     end
 
 
-    %% Eyelink
-
-    Common.StartRecordingEyelink
-
 
     %% Go
 
