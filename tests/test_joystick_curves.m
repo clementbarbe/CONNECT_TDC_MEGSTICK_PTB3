@@ -1,5 +1,6 @@
 function test_joystick_curves()
 %TEST_JOYSTICK_CURVES Equal-amplitude families use the actual task converter.
+setup_AMEDYST();
 settings = ADAPT.JoystickSettings();
 limits = [-29376 -31482 27242 30784];
 coefficients = [0 1 2 4 6 8];

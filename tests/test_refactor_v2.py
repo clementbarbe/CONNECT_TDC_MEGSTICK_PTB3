@@ -8,15 +8,15 @@ root=Path(__file__).resolve().parents[1]
 code={f.relative_to(root).as_posix():f.read_text(encoding='latin1')
       for f in root.rglob('*.m') if 'vendor' not in f.relative_to(root).parts}
 main=code['AMEDYST_main.m']
-menu=code['AMEDYST_GUI.m']
-geometry=code['+MEG/ApplyDisplayGeometry.m']
+menu=code['src/AMEDYST_GUI.m']
+geometry=code['src/+MEG/ApplyDisplayGeometry.m']
 # 1. No Save/NoSave GUI state or conditional saving remains.
 for name,text in code.items():
     for word in ['SaveMode','NoSave','radiobutton_SaveData','radiobutton_NoSave',
                  'EyelinkMode','StartRecordingEyelink.m','Eyelink.',
                  'EchoStart(', 'EchoStop(', 'edit_DisplayWidthMm','DisplayWidthMm']:
         assert word not in text, (name,word)
-assert not (root/'+Common/StartRecordingEyelink.m').exists()
+assert not (root/'src/+Common/StartRecordingEyelink.m').exists()
 assert main.count("save(DataFile, 'S'") >= 1
 assert "save([S.DataFile '_SR.mat'],'srD')" in main
 assert "save([S.DataFile '_OUT.mat'],'outD')" in main
@@ -34,7 +34,7 @@ assert 'uipanel_SaveMode' not in menu
 assert 'edit_DisplayWidthMm' not in menu
 # 3. No physical screen width conversion; original relative sizing retained.
 assert 'PixelsPerMm' not in geometry
-assert 'DimensionRatio = 0.80' in code['GetParameters.m']
+assert 'DimensionRatio = 0.80' in code['src/GetParameters.m']
 assert 'S.MEG.RequestedSamplingHz = 140' in geometry
 assert 'outerRatio * 20/320' in geometry
 assert 'outerRatio * 16/320' in geometry

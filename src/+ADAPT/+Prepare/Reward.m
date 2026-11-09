@@ -4,14 +4,7 @@ global S
 ratio = S.Parameters.ADAPT.Reward.ScreenRatio;
 color = S.Parameters.ADAPT.Reward.NoRewardColor;
 
-% switch S.Task
-%     case 'ADAPT_LowReward'
-%         filename = fullfile(pwd,'img','10centsEURO.png');
-%     case 'ADAPT_HighReward'
-         filename = fullfile(pwd,'img','50centsEURO.png');
-%     otherwise
-%         error('task ?')
-% end
+filename = fullfile(setup_AMEDYST(),'assets','images','50centsEURO.png');
 
 reward = Image(filename, [], [], color);
 reward.map = 0; % no need for these pictures

@@ -1,6 +1,7 @@
 function test_joystick_recenter()
 %TEST_JOYSTICK_RECENTER Exercise the real cursor/recorders with simulated I/O.
 % No display, joystick, or Psychtoolbox is used. Temporary stubs are removed.
+setup_AMEDYST();
 global S prevX prevY newX newY JoystickTestIO
 previousS = S;
 previousCursorState = {prevX,prevY,newX,newY};
@@ -65,8 +66,7 @@ root = fileparts(fileparts(mfilename('fullpath')));
 addpath(root);
 addpath(fullfile(root,'vendor','StimTemplate-master'));
 addpath(stubFolder,'-begin');
-% MATLAB searches the working directory before the path; leave the project
-% root so the real joymex2 binary there cannot override the simulated one.
+% Keep the simulated device ahead of all real binaries during the test.
 cd(stubFolder);
 clear Screen GetSecs joymex2 KbCheck CenterRectOnPoint DrawFormattedText Priority ShowCursor
 assert(strcmp(which('joymex2'),fullfile(stubFolder,'joymex2.m')));

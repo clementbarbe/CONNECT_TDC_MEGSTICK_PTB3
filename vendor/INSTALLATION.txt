@@ -4,4 +4,6 @@ Ou copier manuellement un dossier StimTemplate-master depuis
 https://github.com/benoitberanger/StimTemplate
 dans ce dossier vendor/.
 
-L'archive ne contient pas les fichiers de code externes de StimTemplate.
+Les sources de StimTemplate restent dans StimTemplate-master/ sans modification.
+Les binaires du joystick sont regroupes dans joymex2/.
+Documentation du projet : ../docs/installation.md

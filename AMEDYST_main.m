@@ -2,6 +2,8 @@ function AMEDYST_main(hObject, ~)
 % AMEDYST_main is the main program, calling the different tasks and
 % routines, according to the paramterts defined in the GUI
 
+setup_AMEDYST();
+
 %% GUI : open a new one or retrive data from the current one
 
 if nargin == 0

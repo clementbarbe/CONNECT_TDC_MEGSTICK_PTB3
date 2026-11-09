@@ -1,0 +1,13 @@
+# Acquisition data remain local.
+/data/*
+!/data/.gitkeep
+
+# MATLAB and Python temporary files.
+*.asv
+*.m~
+__pycache__/
+*.py[cod]
+
+# Operating system metadata.
+.DS_Store
+Thumbs.db

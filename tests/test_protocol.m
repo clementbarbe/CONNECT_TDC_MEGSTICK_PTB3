@@ -1,5 +1,6 @@
 function test_protocol()
 %TEST_PROTOCOL Can run in MATLAB without joystick/PTB/StimTemplate.
+setup_AMEDYST();
 for order = 1:4
     base = MEG.BuildParadigm(1,order,'Acquisition',300);
     adapt = MEG.BuildParadigm(2,order,'Acquisition',300);

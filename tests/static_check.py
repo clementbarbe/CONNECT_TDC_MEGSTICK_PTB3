@@ -5,22 +5,23 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / 'src'
 files = list(ROOT.rglob('*.m'))
 assert len(files) > 60
-assert len(list(ROOT.glob('+ADAPT/Planning.m'))) == 1
+assert len(list(SRC.glob('+ADAPT/Planning.m'))) == 1
 assert len(list(ROOT.rglob('Task.m'))) == 2  # shared ADAPT + unrelated SEQ
 assert not list(ROOT.glob('AMEDYST_stim-master_*'))
-assert (ROOT/'AMEDYST_GUI.m').exists()
-assert (ROOT/'+MEG/BuildParadigm.m').exists()
-assert (ROOT/'+ADAPT/Task.m').exists()
+assert (SRC/'AMEDYST_GUI.m').exists()
+assert (SRC/'+MEG/BuildParadigm.m').exists()
+assert (SRC/'+ADAPT/Task.m').exists()
 
-menu=(ROOT/'AMEDYST_GUI.m').read_text(encoding='latin1')
+menu=(SRC/'AMEDYST_GUI.m').read_text(encoding='latin1')
 main=(ROOT/'AMEDYST_main.m').read_text(encoding='latin1')
-planner=(ROOT/'+ADAPT/Planning.m').read_text()
-runner=(ROOT/'+ADAPT/Task.m').read_text(encoding='latin1')
-proto=(ROOT/'+MEG/BuildParadigm.m').read_text()
-rotation=(ROOT/'+ADAPT/ApplyDeviation.m').read_text(encoding='latin1')
-geo=(ROOT/'+MEG/ApplyDisplayGeometry.m').read_text()
+planner=(SRC/'+ADAPT/Planning.m').read_text()
+runner=(SRC/'+ADAPT/Task.m').read_text(encoding='latin1')
+proto=(SRC/'+MEG/BuildParadigm.m').read_text()
+rotation=(SRC/'+ADAPT/ApplyDeviation.m').read_text(encoding='latin1')
+geo=(SRC/'+MEG/ApplyDisplayGeometry.m').read_text()
 
 for tag in ['pushbutton_MEG_Task1','pushbutton_MEG_Task2']:
     assert tag in main and tag in menu

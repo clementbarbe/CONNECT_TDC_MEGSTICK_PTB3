@@ -3,8 +3,8 @@ import re
 root = Path(__file__).resolve().parents[1]
 main = (root / 'AMEDYST_main.m').read_text()
 install = (root / 'setup_StimTemplate.m').read_text()
-gui = (root / 'AMEDYST_GUI.m').read_text()
-readme = (root / 'README_MEG_FR.md').read_text()
+gui = (root / 'src' / 'AMEDYST_GUI.m').read_text()
+readme = (root / 'README.md').read_text()
 for symbol in ['EventPlanning','EventRecorder','SampleRecorder','KbLogger']:
     assert symbol in main and symbol in install
 assert 'https://github.com/benoitberanger/StimTemplate/' in install

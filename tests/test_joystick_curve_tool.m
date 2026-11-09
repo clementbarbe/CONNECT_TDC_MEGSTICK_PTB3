@@ -1,5 +1,6 @@
 function test_joystick_curve_tool(previewPath)
 %TEST_JOYSTICK_CURVE_TOOL Real MATLAB graphics, simulated launcher, no PTB.
+setup_AMEDYST();
 if nargin < 1, previewPath = ''; end
 launcher = figure('Visible','off','Name','Curve test launcher');
 cleanup = onCleanup(@() closeWindows(launcher));

@@ -754,12 +754,12 @@ if isempty(subjectID)
     fprintf('Please enter a Subject ID first.\n');
     return
 end
-dataPath = fullfile(fileparts(mfilename('fullpath')),'data',subjectID);
+dataPath = fullfile(setup_AMEDYST(),'data',subjectID);
 if exist(dataPath,'dir')
     fprintf('Files for subject %s: %s\n',subjectID,dataPath);
     disp(dir(dataPath));
 else
-    fprintf('No data directory yet for subject %s.\n',subjectID);
+    fprintf('No data directory yet for subject %s: %s\n',subjectID,dataPath);
 end
 end
 
@@ -917,7 +917,7 @@ switch eventdata.EventName
     case 'ButtonDown'
 
         % Get file
-        [filename, pathname] = uigetfile(fullfile('..','data','*.mat'));
+        [filename, pathname] = uigetfile(fullfile(setup_AMEDYST(),'data','*.mat'));
 
         if isnumeric(filename)
             return

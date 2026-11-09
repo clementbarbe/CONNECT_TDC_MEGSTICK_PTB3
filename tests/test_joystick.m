@@ -1,5 +1,6 @@
 function test_joystick()
 %TEST_JOYSTICK Numerical regression checks; no PTB or joystick required.
+setup_AMEDYST();
 settings = ADAPT.JoystickSettings();
 limits = [-30000 -28000 32000 31000];
 center = [1300 -700];
