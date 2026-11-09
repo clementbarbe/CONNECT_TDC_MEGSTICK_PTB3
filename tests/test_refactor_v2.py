@@ -3,8 +3,10 @@ Static checks only; MATLAB and hardware execution still required.
 """
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
+# Check application code; the unmodified upstream dependency still ships
+# its own optional EyeLink and echo utilities.
 code={f.relative_to(root).as_posix():f.read_text(encoding='latin1')
-      for f in root.rglob('*.m')}
+      for f in root.rglob('*.m') if 'vendor' not in f.relative_to(root).parts}
 main=code['AMEDYST_main.m']
 menu=code['AMEDYST_GUI.m']
 geometry=code['+MEG/ApplyDisplayGeometry.m']

@@ -9,7 +9,7 @@ Parameters.AnglesError = [0 10 20 30 360];
 Parameters.RewardNoteDuration = 1.0;
 Parameters.PausePostMotor = 0.2;
 % Actual endpoint -> next-trial interval; ADAPT.Task uses a real-time
-% deadline, so reward presentation and any passive recentering are included.
+% deadline, so reward presentation and the active return/hold are included.
 Parameters.MinPauseBetweenTrials = 3.5;
 Parameters.MaxPauseBetweenTrials = 4.5;
 Parameters.PausePreMotor_Min = 0;

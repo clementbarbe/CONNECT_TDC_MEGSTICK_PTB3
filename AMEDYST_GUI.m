@@ -20,6 +20,15 @@ figPtr = findall(0,'Tag',mfilename);
 if ~isempty(figPtr) % Figure exists so brings it to the focus
 
     figure(figPtr);
+    % Refresh profile labels when settings were edited while the menu was open.
+    existingHandles = guidata(figPtr);
+    if isfield(existingHandles,'popup_JoystickConversion')
+        conversionLabels = joystickConversionChoices();
+        if isfield(existingHandles,'JoystickProfile')
+            conversionLabels{end+1} = existingHandles.JoystickProfile.Label;
+        end
+        set(existingHandles.popup_JoystickConversion,'String',conversionLabels);
+    end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%% DEBUG %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if debug
@@ -427,6 +436,14 @@ else % Create the figure
     handles.popup_Scoring = uicontrol(handles.uipanel_Task_ADAPT,...
         'Style','popupmenu','Units','normalized','Position',[0.65 0.44 0.34 0.10],...
         'String',{'Reward (historique)','Punishment (historique)'},'Value',1);
+    [conversionLabels,defaultConversion] = joystickConversionChoices();
+    handles.text_JoystickConversion = uicontrol(handles.uipanel_Task_ADAPT,...
+        'Style','text','Units','normalized','Position',[0.65 0.32 0.34 0.09],...
+        'String','Conversion en position','BackgroundColor',figureBGcolor);
+    handles.popup_JoystickConversion = uicontrol(handles.uipanel_Task_ADAPT,...
+        'Style','popupmenu','Units','normalized','Position',[0.65 0.21 0.34 0.11],...
+        'String',conversionLabels,'Value',defaultConversion,...
+        'Enable','off','TooltipString','Courbe et gain du joystick (souris inchangee)');
     %% Panel : Cursor input method
 
     p_cursorinput.x = panelProp.xposP;
@@ -540,14 +557,15 @@ else % Create the figure
     e_xymm.y = 0.1;
     e_xymm.h = 0.4;
     e_xymm.tag = 'edit_xmin_ymin_xmax_ymax';
+    joystickDefaults = ADAPT.JoystickSettings();
     handles.(e_xymm.tag) = uicontrol(handles.uipanel_CursorInput,...
         'Style','edit',...
         'Units', 'Normalized',...
         'Position',[e_xymm.x e_xymm.y e_xymm.w e_xymm.h],...
         'BackgroundColor',editBGcolor,...
-        'String','',...
+        'String',num2str(joystickDefaults.DefaultCalibration),...
         'Visible', 'off',...
-        'Tooltip','Set with joystick calibration');
+        'Tooltip','Valeurs usuelles : remplacer par la calibration du jour si necessaire');
 
 
     %% Panel : Operation mode
@@ -675,6 +693,16 @@ else % Create the figure
 
 end
 
+% Available on both newly created and already open launch menus.
+handles = guidata(figPtr);
+if ~isfield(handles,'pushbutton_JoystickCurves') || ~ishghandle(handles.pushbutton_JoystickCurves)
+    handles.pushbutton_JoystickCurves = uicontrol(handles.uipanel_Task_ADAPT, ...
+        'Style','pushbutton','Units','normalized','Position',[0.04 0.27 0.59 0.15], ...
+        'String','Comparer les courbes du joystick', ...
+        'BackgroundColor',[0.8 0.85 0.9], ...
+        'Callback',@(source,~) ADAPT.JoystickCurveTool(ancestor(source,'figure')));
+    guidata(figPtr,handles);
+end
 
 if contains(which('AMEDYST_GUI'),'karim.ndiaye')
     set(findall(0,'Tag','AMEDYST_GUI'),'Position', [-1600 400 600 600])
@@ -691,6 +719,15 @@ end % main function
 
 
 %% GUI Functions
+
+function [labels,defaultValue] = joystickConversionChoices()
+settings = ADAPT.JoystickSettings();
+labels = arrayfun(@(gain) sprintf('Exponentielle k%g x%g', ...
+    settings.ExponentialCoefficient,gain),settings.Gains,'UniformOutput',false);
+labels{end+1} = 'Lineaire x1';
+defaultValue = settings.GainIndex;
+if strcmp(settings.Conversion,'Linear'), defaultValue = numel(labels); end
+end
 
 % -------------------------------------------------------------------------
 % -------------------------------------------------------------------------
@@ -781,6 +818,7 @@ if isempty( which('joymex2') )
     set(hObject,'SelectedObject',handles.radiobutton_Mouse);
     set(handles.pushbutton_JoystickCalibration, 'Visible', 'off')
     set(handles.edit_xmin_ymin_xmax_ymax, 'Visible', 'off')
+    set(handles.popup_JoystickConversion, 'Enable', 'off')
 end
 
 try
@@ -789,17 +827,20 @@ try
             joymex2('open',0);
             set(handles.pushbutton_JoystickCalibration, 'Visible', 'on')
             set(handles.edit_xmin_ymin_xmax_ymax, 'Visible', 'on')
+            set(handles.popup_JoystickConversion, 'Enable', 'on')
         case 'radiobutton_Mouse'
             % joymex2('close',0);
             clear joymex2 % more stable on linux than "joymex2('close',0);"
             set(handles.pushbutton_JoystickCalibration, 'Visible', 'off')
             set(handles.edit_xmin_ymin_xmax_ymax, 'Visible', 'off')
+            set(handles.popup_JoystickConversion, 'Enable', 'off')
     end
 
 catch err
     set(hObject,'SelectedObject',handles.radiobutton_Mouse);
     set(handles.pushbutton_JoystickCalibration, 'Visible', 'off')
     set(handles.edit_xmin_ymin_xmax_ymax, 'Visible', 'off')
+    set(handles.popup_JoystickConversion, 'Enable', 'off')
     rethrow(err)
 end
 

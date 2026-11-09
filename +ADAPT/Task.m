@@ -26,6 +26,7 @@ try
     %% Go
     % Initialize some variables
     EXIT = 0;
+    joystickNeedsRecentering = strcmp(S.InputMethod,'Joystick');
     TargetBigCirclePosition = (BigCircle.diameter-BigCircle.thickness)/2;
     Red    = [255 0   0  ];
     Green  = [0   255 0  ];
@@ -103,6 +104,8 @@ try
                     [ EXIT, StopTime ] = Common.Interrupt(ER,RR,StartTime);
                     if EXIT, break; end
                 end
+                % Rest can drift during a long block break.
+                joystickNeedsRecentering = strcmp(S.InputMethod,'Joystick');
 
             case {'Direct_Pre', 'Deviation', 'No_vision'} % --------------------------------
 
@@ -152,6 +155,14 @@ try
                         RR.AddEvent([{['Jitter__' EP.Data{evt,1}] lastFlipOnset-StartTime []} EP.Data(evt,4:end)]);
                         step0onset = lastFlipOnset;
                         Common.SendParPortMessage( 'Jitter' )
+                    end
+
+                    if joystickNeedsRecentering
+                        [EXIT,StopTime] = ADAPT.RecenterJoystick( ...
+                            Cursor,BigCircle,Cross,ER,RR,SR,StartTime,EP.Data(evt,:));
+                        joystickNeedsRecentering = false;
+                        if EXIT, break; end
+                        continue % refresh the jitter frame/time after calibration
                     end
 
                     if lastFlipOnset >= jitterDeadline
@@ -360,7 +371,7 @@ try
 
                     end
 
-                    PrevCursor = Cursor.CopyObject;     %%%% à modifier
+                    PrevCursor = Cursor.CopyObject;     %%%% Ã  modifier
                     ADAPT.UpdateCursor(Cursor, EP.Get('Deviation',evt))
 
                     if Cursor.R <= TargetBigCirclePosition - 2;
@@ -515,6 +526,12 @@ try
                     end
                     Probability.Draw( proba_str );
                     ADAPT.UpdateCursor(Cursor, EP.Get('Deviation',evt))
+                    if strcmp(S.InputMethod,'Joystick')
+                        oldTextSize = Screen('TextSize',S.PTB.wPtr,max(18,round(Cursor.screenY*0.035)));
+                        DrawFormattedText(S.PTB.wPtr,'Revenez au point de depart', ...
+                            'center',Cursor.screenY*0.80,[255 255 255]);
+                        Screen('TextSize',S.PTB.wPtr,oldTextSize);
+                    end
 
                     Screen('DrawingFinished',S.PTB.wPtr);
                     lastFlipOnset = Screen('Flip',S.PTB.wPtr);
@@ -587,6 +604,13 @@ try
                     break
                 end
 
+                % Recalibrate after every attempt, including misses/timeouts
+                % and the last trial. This time is part of the inter-trial pause.
+                if strcmp(S.InputMethod,'Joystick')
+                    [EXIT,StopTime] = ADAPT.RecenterJoystick( ...
+                        Cursor,BigCircle,Cross,ER,RR,SR,StartTime,EP.Data(evt,:));
+                    if EXIT, break; end
+                end
 
             otherwise % ---------------------------------------------------
 

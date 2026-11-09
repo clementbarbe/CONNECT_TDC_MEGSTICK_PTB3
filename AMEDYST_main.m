@@ -259,8 +259,10 @@ end
 switch get(get(handles.uipanel_CursorInput,'SelectedObject'),'Tag')
     case 'radiobutton_Joystick'
         InputMethod = 'Joystick';
-        joymex2('open',0);
         xmin_ymin_xmax_ymax = str2num( get(handles.edit_xmin_ymin_xmax_ymax, 'String') );
+        % Validate the range before opening the acquisition window/device.
+        ADAPT.NormalizeJoystickAxes([0 0],[0 0],xmin_ymin_xmax_ymax);
+        joymex2('open',0);
     case 'radiobutton_Mouse'
         InputMethod = 'Mouse';
         xmin_ymin_xmax_ymax = str2num( get(handles.edit_xmin_ymin_xmax_ymax, 'String') );
@@ -283,6 +285,10 @@ end
 %% MAIN : Get stimulation parameters
 
 S.Parameters = GetParameters;
+S.Joystick.Center = [0 0];
+S.Joystick.RestHistory = struct('Block',{},'Trial',{},'Onset',{}, ...
+    'Duration',{},'RawCenter',{},'SampleCount',{},'NormalizedRange',{});
+S.Parameters.ADAPT.Joystick = ADAPT.SelectedJoystickSettings(handles);
 
 % Screen mode selection
 AvalableDisplays = get(handles.listbox_Screens,'String');

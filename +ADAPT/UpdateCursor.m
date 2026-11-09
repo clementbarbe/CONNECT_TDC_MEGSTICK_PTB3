@@ -1,9 +1,10 @@
-function UpdateCursor( Cursor, deviation )
+function rawAxes = UpdateCursor( Cursor, deviation )
 global S prevX prevY newX newY
 
+rawAxes = [];
 switch S.InputMethod
     case 'Joystick'
-        [newX, newY] = ADAPT.QueryJoystickData( Cursor.screenX, Cursor.screenY );
+        [newX, newY, rawAxes] = ADAPT.QueryJoystickData( Cursor.screenX, Cursor.screenY );
     case 'Mouse'
         [newX, newY] = ADAPT.QueryMouseData( Cursor.wPtr, Cursor.Xorigin, Cursor.Yorigin, Cursor.screenY );
 end

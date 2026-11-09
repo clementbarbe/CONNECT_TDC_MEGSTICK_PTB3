@@ -79,6 +79,7 @@ Parameters.ADAPT.Circle.ValueColor     = [0 0 0];                               
 
 % Target => @Circle
 Parameters.ADAPT.Target.DimensionRatio = 0.09;                                   % diameter  = DimensionRatio*ScreenHeight
+Parameters.ADAPT.Target.DiameterMultiplier = 1.5;                                % MEG: central circle and peripheral targets, +50% diameter
 Parameters.ADAPT.Target.WidthRatio     = 0.10;                                   % thickness = WidthRatio    *diameter
 Parameters.ADAPT.Target.FrameColor     = [255 255 255];                          % [R G B] ( from 0 to 255 )
 Parameters.ADAPT.Target.DiskColor      = Parameters.Video.ScreenBackgroundColor; % [R G B] ( from 0 to 255 )
@@ -100,6 +101,9 @@ Parameters.ADAPT.Reward.NoRewardColor  = [128 128 128]; % color of the rectangle
 
 % Timer => @Timer
 Parameters.ADAPT.Timer.ScreenRation    = 0.05;          % ratio : dim = ScreenHeight*ratio_screen
+
+% Joystick: shared defaults, also used to populate the launch menu.
+Parameters.ADAPT.Joystick = ADAPT.JoystickSettings();
 
 
 %%%%%%%%%%%%%%
