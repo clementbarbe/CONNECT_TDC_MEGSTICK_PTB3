@@ -13,11 +13,27 @@ if strcmp(S.OperationMode,'Acquisition')
     
     % Just to be sure the user is not pushing a button before
     WaitSecs(0.200); % secondes
+
+    serialTrigger = isfield(S,'JoystickConnection') && ...
+        strcmp(S.InputMethod,'Joystick') && ...
+        strcmp(S.JoystickConnection.Transport,'SerialPJS');
+    if serialTrigger
+        ADAPT.JoystickDevice('armtrigger');
+        disp('PJS : attente du trigger serie (ou de la touche TTL).');
+    end
     
     % Waiting for TTL signal
     while 1
         
         [ keyIsDown , TriggerTime, keyCode ] = KbCheck;
+
+        if serialTrigger
+            receivedTrigger = ADAPT.JoystickDevice('trigger');
+            if ~isempty(receivedTrigger)
+                TriggerTime = receivedTrigger;
+                break
+            end
+        end
         
         if keyIsDown
             
@@ -55,6 +71,7 @@ if strcmp(S.OperationMode,'Acquisition')
             
         end
         
+        WaitSecs('YieldSecs',0.001);
     end % while
     
     

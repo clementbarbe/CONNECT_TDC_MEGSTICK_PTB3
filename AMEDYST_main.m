@@ -230,6 +230,18 @@ else
     ParPort = 'Off';
 end
 S.ParPort = ParPort;
+joystickConnection = ADAPT.JoystickConnectionSettings(handles);
+selectedInput = get(handles.uipanel_CursorInput,'SelectedObject');
+if strcmp(ParPort,'Arduino') && ~isempty(selectedInput) && ...
+        strcmp(get(selectedInput,'Tag'),'radiobutton_Joystick') && ...
+        strcmp(joystickConnection.Transport,'SerialPJS')
+    if ispc, triggerPort = 'COM4'; else, triggerPort = '/dev/ttyACM0'; end
+    if strcmpi(joystickConnection.Port,triggerPort)
+        error('AMEDYST:SerialPortConflict', ...
+            ['Le port %s est selectionne pour le joystick et pour les marqueurs Arduino. ' ...
+            'Desactivez les marqueurs ou configurez un autre port Arduino.'],triggerPort);
+    end
+end
 S.ParPortMessages = Common.PrepareParPort;
 handles.ParPort   = ParPort;
 
@@ -264,7 +276,6 @@ switch get(get(handles.uipanel_CursorInput,'SelectedObject'),'Tag')
         xmin_ymin_xmax_ymax = str2num( get(handles.edit_xmin_ymin_xmax_ymax, 'String') );
         % Validate the range before opening the acquisition window/device.
         ADAPT.NormalizeJoystickAxes([0 0],[0 0],xmin_ymin_xmax_ymax);
-        joymex2('open',0);
     case 'radiobutton_Mouse'
         InputMethod = 'Mouse';
         xmin_ymin_xmax_ymax = str2num( get(handles.edit_xmin_ymin_xmax_ymax, 'String') );
@@ -273,6 +284,7 @@ switch get(get(handles.uipanel_CursorInput,'SelectedObject'),'Tag')
 end
 
 S.InputMethod = InputMethod;
+S.JoystickConnection = joystickConnection;
 S.xmin_ymin_xmax_ymax = xmin_ymin_xmax_ymax;
 
 %% MAIN : Security : NEVER overwrite a file
@@ -332,6 +344,12 @@ if ~isempty(missingClasses)
         strjoin(missingClasses,', '));
 end
 
+%% MAIN : Validate the connected joystick before fullscreen / trigger waiting
+if strcmp(S.InputMethod,'Joystick')
+    joystickCleanup = onCleanup(@() ADAPT.JoystickDevice('close'));
+    S.Joystick.ConnectionInfo = ADAPT.JoystickDevice('open',S.JoystickConnection);
+end
+
 %% MAIN : Open PTB window & sound
 
 S.PTB = StartPTB;
@@ -380,6 +398,10 @@ switch Task
 end
 
 
+if strcmp(S.InputMethod,'Joystick')
+    S.Joystick.ConnectionInfo = ADAPT.JoystickDevice('status');
+    ADAPT.JoystickDevice('close');
+end
 S.TaskData = TaskData;
 % A recovery file is written immediately after the task finishes, before
 % output conversion, SPM analysis or optional plots can fail.

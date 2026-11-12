@@ -2,9 +2,17 @@
 
 ## Calibration
 
-Sélectionner **Joystick**, puis **JCalibration** dans le menu. Explorer le débattement du joystick et terminer avec Échap. Le champ contient les limites `[xmin ymin xmax ymax]` dans le repère de l'expérience.
+Sélectionner **Joystick**, choisir le transport **USB HID JOY** ou **Série PJS / 651**, puis **Calibration**. Laisser la manette au repos et cliquer sur **Mesurer le centre** (ou appuyer sur **Espace**). Rester immobile pendant la mesure de 0,6 seconde. Explorer ensuite le débattement des deux axes dans les deux sens et terminer avec Échap dans la fenêtre de calibration. Fermer cette fenêtre annule la mesure sans remplacer les limites précédentes.
 
-Les valeurs usuelles `[-29376 -31482 27242 30784]` sont préremplies et peuvent être remplacées par celles de la calibration du jour. Chaque demi-course est normalisée séparément, ce qui tient compte des bornes asymétriques.
+Le graphique des coordonnées brutes montre les valeurs réellement reçues et une croix verte au centre mesuré. Ces valeurs peuvent toutes être négatives : le repos n'est pas nécessairement le zéro numérique du périphérique. Le graphique normalisé soustrait le centre mesuré et utilise séparément la course de chaque côté ; le repos y correspond à `(0, 0)` et les extrémités à `−1` et `+1`. **Espace** permet de reprendre la mesure du centre et recommence alors la mesure des extrêmes.
+
+Le champ `[xmin ymin xmax ymax]` contient les limites relatives au centre mesuré. Ce même décalage est soustrait dans le lecteur pendant la tâche, avant les courbes et le recentrage entre essais. Le centre brut est conservé séparément pour chaque transport et enregistré dans `S.JoystickConnection.RawCenter`.
+
+Les coordonnées des recalages dans `S.Joystick.RestHistory.RawCenter` sont exprimées dans ce repère déjà centré. Pour retrouver les valeurs du périphérique après correction des signes et de l'échelle, leur ajouter `S.JoystickConnection.RawCenter`.
+
+Les valeurs USB usuelles `[-29376 -31482 27242 30784]` sont préremplies et peuvent être remplacées par celles de la calibration du jour. Chaque demi-course est normalisée séparément, ce qui tient compte des bornes asymétriques.
+
+Le menu conserve séparément les calibrations USB et série pendant qu'il reste ouvert. En série, les valeurs initiales correspondent à la course théorique PJS ; effectuer une nouvelle calibration sur le matériel. **Inv.X** et **Inv.Y** corrigent l'orientation du port série, et les limites déjà saisies sont transformées avec les axes. La fenêtre de calibration indique les directions positives. Voir le [guide série PJS](serial_pjs.md) pour le branchement et le test de connexion.
 
 ## Comparaison des courbes
 
@@ -45,6 +53,8 @@ La référence exponentielle utilise la hauteur de fenêtre (`ExponentialRangeRa
 ## Paramètres sauvegardés
 
 - `S.Parameters.ADAPT.Joystick` : profil et critères de maintien.
+- `S.JoystickConnection` : transport, port, débit et orientation des axes.
+- `S.Joystick.ConnectionInfo` : état et compteurs de connexion ; en série, instants de réception des triggers.
 - `S.Joystick.Center` : dernier zéro.
 - `S.Joystick.RestHistory` : bloc, essai, instant, durée, coordonnées, nombre de mesures et variation de chaque recalage.
 - `JoystickReturn__…` et `JoystickZero__…` dans le journal `RR` : début du retour et validation du zéro. Aucun marqueur matériel supplémentaire n'est émis.

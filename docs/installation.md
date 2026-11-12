@@ -22,13 +22,17 @@ Sur un poste hors ligne, récupérer la bibliothèque sur un autre ordinateur et
 
 ## Joystick
 
-Les binaires `joymex2.mexa64` et `joymex2.mexw64`, ainsi que `SDL.dll`, sont regroupés dans `vendor/joymex2/`. Leur compatibilité doit être vérifiée sur le poste. La calibration se lance depuis le bouton **JCalibration** ; Échap termine sa mesure. La souris permet de déboguer l'expérience et l'outil de comparaison des courbes fonctionne sans joystick.
+Pour **USB HID JOY**, les binaires `joymex2.mexa64` et `joymex2.mexw64`, ainsi que `SDL.dll`, sont regroupés dans `vendor/joymex2/`. Leur compatibilité doit être vérifiée sur le poste.
+
+Pour **Série PJS / 651**, le lecteur utilise `serialport`, disponible à partir de MATLAB R2019b. Le menu énumère les ports présents dès son ouverture et accepte aussi un nom saisi manuellement. Ce transport ne fait pas appel à `joymex2`. Le boîtier doit être configuré en PJS et relié à la sortie série appropriée : voir le [guide série PJS](serial_pjs.md).
+
+La calibration du transport sélectionné se lance depuis **Calibration** ; Échap termine la mesure dans sa fenêtre. La souris permet de déboguer l'expérience et l'outil de comparaison des courbes fonctionne sans joystick.
 
 ## Déclenchement et marqueurs
 
-En mode Acquisition, le programme attend le déclenchement clavier : **t** sous Linux, **5** sous Windows et macOS. Les modes Debug démarrent sans ce déclenchement.
+En mode Acquisition, le programme attend le déclenchement clavier : **t** sous Linux, **5** sous Windows et macOS. Avec le joystick série sélectionné, un nouveau front du bit trigger PJS peut aussi démarrer la tâche. Les modes Debug démarrent sans ce déclenchement.
 
-L'option **Marqueurs COM/Arduino** est désactivée par défaut. L'activer uniquement lorsqu'un Arduino est connecté et configuré. Le message `No trigger will be sent.` signifie que l'envoi des marqueurs est désactivé.
+L'option **Marqueurs COM/Arduino** est désactivée par défaut. L'activer uniquement lorsqu'un Arduino est connecté et configuré sur un port distinct de celui du joystick. Le message `No trigger will be sent.` signifie que l'envoi des marqueurs est désactivé.
 
 ## Données
 

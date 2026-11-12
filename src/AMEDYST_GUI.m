@@ -51,7 +51,7 @@ else % Create the figure
         'Name'            , mfilename                , ...
         'NumberTitle'     , 'off'                    , ...
         'Units'           , 'Pixels'                 , ...
-        'Position'        , [20, 20, 700, 700] , ...
+        'Position'        , [20, 20, 850, 850] , ...
         'Tag'             , mfilename                );
 
     figureBGcolor = [0.9 0.9 0.9]; set(figHandle,'Color',figureBGcolor);
@@ -72,7 +72,7 @@ else % Create the figure
     panelProp.wP    = 1 - panelProp.xposP * 2;
 
     panelProp.vect  = ...
-        [1 4 2 1 2 ]; % relative proportions of each panel, from bottom to top
+        [1 5 2 1 2 ]; % relative proportions of each panel, from bottom to top
 
     panelProp.vectLength    = length(panelProp.vect);
     panelProp.vectTotal     = sum(panelProp.vect);
@@ -669,17 +669,15 @@ else % Create the figure
     figPtr = figHandle;
 
     fprintf('\n')
-    fprintf('Response buttuns (fORRP 932) : \n')
+    fprintf('Entrees fORP 932 : \n')
     fprintf('\n')
     fprintf('1) SEQ :\n')
     fprintf('USB \n')
     fprintf('HHSC - 2x4 - C \n')
     fprintf('HID NAR BYGRT \n')
     fprintf('\n')
-    fprintf('1) ADAPT :\n')
-    fprintf('USB \n')
-    fprintf('TETHYX \n')
-    fprintf('HID JOYSTICK \n')
+    fprintf('2) ADAPT : TETHYX\n')
+    fprintf('USB HID JOYSTICK (601) ou serie PJS (651), au choix dans le menu.\n')
     fprintf('\n')
 
     %% KND: Pre-set options for faster testing by me...
@@ -695,9 +693,15 @@ end
 
 % Available on both newly created and already open launch menus.
 handles = guidata(figPtr);
+if ~isfield(handles,'popup_JoystickTransport')
+    handles = ADAPT.PrepareJoystickInputGUI(handles);
+    guidata(figPtr,handles);
+    ADAPT.JoystickInputCallback('refresh',handles.pushbutton_JoystickRefreshPorts,[]);
+    handles = guidata(figPtr);
+end
 if ~isfield(handles,'pushbutton_JoystickCurves') || ~ishghandle(handles.pushbutton_JoystickCurves)
     handles.pushbutton_JoystickCurves = uicontrol(handles.uipanel_Task_ADAPT, ...
-        'Style','pushbutton','Units','normalized','Position',[0.04 0.27 0.59 0.15], ...
+        'Style','pushbutton','Units','normalized','Position',[0.04 0.24 0.59 0.13], ...
         'String','Comparer les courbes du joystick', ...
         'BackgroundColor',[0.8 0.85 0.9], ...
         'Callback',@(source,~) ADAPT.JoystickCurveTool(ancestor(source,'figure')));
@@ -811,39 +815,9 @@ end % function
 % -----------------------------------------²--------------------------------
 function uipanel_CursorInput_SelectionChangeFcn(hObject, eventdata)
 handles = guidata(hObject);
-
-% Check if joymex2 exists in the path
-if isempty( which('joymex2') )
-    disp('joymex2 NOT DETECTED : check https://github.com/escabe/joymex2')
-    set(hObject,'SelectedObject',handles.radiobutton_Mouse);
-    set(handles.pushbutton_JoystickCalibration, 'Visible', 'off')
-    set(handles.edit_xmin_ymin_xmax_ymax, 'Visible', 'off')
-    set(handles.popup_JoystickConversion, 'Enable', 'off')
+if isfield(handles,'popup_JoystickTransport')
+    ADAPT.JoystickInputCallback('select',hObject,eventdata);
 end
-
-try
-    switch get(eventdata.NewValue,'Tag') % Get Tag of selected object.
-        case 'radiobutton_Joystick'
-            joymex2('open',0);
-            set(handles.pushbutton_JoystickCalibration, 'Visible', 'on')
-            set(handles.edit_xmin_ymin_xmax_ymax, 'Visible', 'on')
-            set(handles.popup_JoystickConversion, 'Enable', 'on')
-        case 'radiobutton_Mouse'
-            % joymex2('close',0);
-            clear joymex2 % more stable on linux than "joymex2('close',0);"
-            set(handles.pushbutton_JoystickCalibration, 'Visible', 'off')
-            set(handles.edit_xmin_ymin_xmax_ymax, 'Visible', 'off')
-            set(handles.popup_JoystickConversion, 'Enable', 'off')
-    end
-
-catch err
-    set(hObject,'SelectedObject',handles.radiobutton_Mouse);
-    set(handles.pushbutton_JoystickCalibration, 'Visible', 'off')
-    set(handles.edit_xmin_ymin_xmax_ymax, 'Visible', 'off')
-    set(handles.popup_JoystickConversion, 'Enable', 'off')
-    rethrow(err)
-end
-
 end % function
 
 

@@ -1,5 +1,10 @@
 function rawAxes = ReadJoystickAxes()
-%READJOYSTICKAXES Raw ADC values in the task's right/up coordinate system.
-data = joymex2('query',0);
-rawAxes = [double(data.axes(1)), -double(data.axes(2))];
+%READJOYSTICKAXES ADC axes in the right/up task frame, relative to measured rest.
+global S
+if isstruct(S) && isfield(S,'JoystickConnection')
+    rawAxes = ADAPT.JoystickDevice('read');
+else
+    data = joymex2('query',0);
+    rawAxes = [double(data.axes(1)), -double(data.axes(2))];
+end
 end
