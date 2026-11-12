@@ -487,5 +487,4 @@ fprintf('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
 fprintf('  Ready for another session   \n')
 fprintf('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n')
 
-
 end % function
